@@ -1,12 +1,10 @@
 #include "GenericImage.h"
 
-GenericImage::GenericImage() {}
+GenericImage::GenericImage()
+	: m_kerSize(0)
+{}
 
 GenericImage::~GenericImage() {
-}
-
-OPENFILENAME GenericImage::get_ofn() const {
-	return ofn;
 }
 
 std::wstring GenericImage::get_wstr() const {
@@ -18,6 +16,7 @@ std::string GenericImage::get_str() const {
 }
 
 void GenericImage::ButtonClick(HWND hDlg) {
+	OPENFILENAME ofn;
 	char file_name[MAX_PATH];
 
 	ZeroMemory(&file_name, sizeof(file_name));

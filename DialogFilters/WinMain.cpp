@@ -1,5 +1,6 @@
 #include <Windows.h>
 #include <gdiplus.h>
+#include <commctrl.h>
 #include "Image.h"
 #include "resource.h"
 #include "BW_Filter.h"
@@ -9,8 +10,10 @@ using namespace Gdiplus;
 
 LRESULT CALLBACK DialogProc(HWND, UINT, WPARAM, LPARAM);
 
-myImage* Img = new myImage();
-Bitmap* result_img = nullptr;
+myImage* origImg = new myImage();
+myImage* resImg = new myImage();
+Bitmap* newBmp = nullptr; 
+bool isFilter = false;
 
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR pCmdLine, int nCmdShow) {
 	GdiplusStartupInput gdiplusStartupInput;
@@ -22,6 +25,11 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR pCmdLine,
 	ShowWindow(hDlg, nCmdShow);
 	UpdateWindow(hDlg);
 
+	EnableWindow(GetDlgItem(hDlg, BW_RADIO), FALSE);
+	EnableWindow(GetDlgItem(hDlg, BLUR_RADIO), FALSE);
+	EnableWindow(GetDlgItem(hDlg, ID_SLIDER), FALSE);
+	EnableWindow(GetDlgItem(hDlg, RUN_BUTTON), FALSE);
+
 	MSG msg;
 	while (GetMessage(&msg, NULL, 0, 0)) {
 		TranslateMessage(&msg);
@@ -30,16 +38,14 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR pCmdLine,
 
 	//End 
 	GdiplusShutdown(gdiplusToken);
-	delete Img->pixels;
-	delete Img->orig_img;
-	delete Img->arr_result;
-	delete Img;
-	delete result_img;
+	delete origImg;
+	delete resImg;
+	delete newBmp;
 
 	return 0;
 }
 
-LRESULT CALLBACK DialogProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam) {
+LRESULT CALLBACK DialogProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam) { 
 	switch (uMsg)
 	{
 	case WM_COMMAND:
@@ -47,35 +53,45 @@ LRESULT CALLBACK DialogProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam) 
 		{
 		case BW_RADIO:
 		{
-			EnableWindow(GetDlgItem(hDlg, ID_SLIDER), FALSE);
+			EnableWindow(GetDlgItem(hDlg, ID_SLIDER), FALSE); 
+			EnableWindow(GetDlgItem(hDlg, RUN_BUTTON), TRUE);
 
-			BW bw(Img);
-			result_img = bw.Filter(hDlg);
+			BW bw(origImg);
+			resImg->CopyImage(origImg);
+			memcpy(resImg->get_arrResult(), bw.Filter(), origImg->get_imgSize());
+			newBmp = new Bitmap(resImg->get_width(), resImg->get_height(), resImg->get_stride(),
+				PixelFormat32bppARGB, (BYTE*)resImg->get_arrResult());
+
+			isFilter = true;
 			return TRUE;
 		}
-
-		case RUN_BUTTON:
-		{
-			/*HBITMAP img;
-			result_img->GetHBITMAP(0, &img);
-			SendDlgItemMessage(hDlg, PICTURE_CONTROL, STM_SETIMAGE, IMAGE_BITMAP, (LPARAM)img);*/
-
-			InvalidateRect(hDlg, NULL, TRUE);
-
-			return TRUE;
-		}
-
 		case BLUR_RADIO:
 		{
-			BoxBlur box_blur(Img);
-			result_img = box_blur.Filter(hDlg);
+			EnableWindow(GetDlgItem(hDlg, RUN_BUTTON), TRUE);
+
+			BoxBlur boxBlur(origImg);
+			resImg->CopyImage(origImg);
+			memcpy(resImg->get_arrResult(), boxBlur.Filter(), origImg->get_imgSize());
+			newBmp = new Bitmap(resImg->get_width(), resImg->get_height(), resImg->get_stride(),
+				PixelFormat32bppARGB, (BYTE*)resImg->get_arrResult());
+
+
+			isFilter = true;
 			return TRUE;
 		}
-
+		case RUN_BUTTON:
+		{
+			InvalidateRect(hDlg, NULL, TRUE);
+			return TRUE;
+		}
 		case OPEN_BUTTON:
 		{
-			Img->ButtonClick(hDlg);
-			Img->SetImage();
+			origImg->ButtonClick(hDlg);
+			origImg->SetImage();
+
+			EnableWindow(GetDlgItem(hDlg, BW_RADIO), TRUE);
+			EnableWindow(GetDlgItem(hDlg, BLUR_RADIO), TRUE);
+			EnableWindow(GetDlgItem(hDlg, ID_SLIDER), TRUE);
 
 			InvalidateRect(hDlg, NULL, TRUE);
 			return TRUE;
@@ -83,36 +99,33 @@ LRESULT CALLBACK DialogProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam) 
 		}
 	case WM_HSCROLL:
 	{
-		//int scrlPos = SendMessage(hDlg, TBM_GETPOS, 0, 0);
+		int scrPos = SendMessage(GetDlgItem(hDlg, ID_SLIDER), TBM_GETPOS, 0, 0);
+		origImg->set_kerSize(scrPos);
 		return TRUE;
 	}
 	case WM_PAINT:
 	{
 		PAINTSTRUCT ps;
-		HDC hdc = BeginPaint(hDlg, &ps);
+		BeginPaint(hDlg, &ps); 
 
-		RECT rect;
 		HDC PChdc = GetDC(GetDlgItem(hDlg, PICTURE_CONTROL));
+		Graphics graphics(PChdc); 
+
+		//position img in the center
+		RECT rect;
 		GetWindowRect(GetDlgItem(hDlg, PICTURE_CONTROL), &rect);
-		Graphics* graphics = new Graphics(PChdc);
-
 		int img_x = 0;
-		if (result_img != nullptr) {
-			if (rect.right - rect.left > result_img->GetWidth()) {
-				img_x = (rect.right - rect.left - result_img->GetWidth()) / 2;
-			}
-			graphics->DrawImage(result_img, img_x, 0);
-			result_img = nullptr;
+		if (rect.right - rect.left > origImg->get_width()) {
+			img_x = (rect.right - rect.left - origImg->get_width()) / 2;
 		}
-		else { //
-			Bitmap* org_img = new Bitmap(Img->get_wstr().c_str());
-			if (rect.right - rect.left > org_img->GetWidth()) {
-				img_x = (rect.right - rect.left - org_img->GetWidth()) / 2;
-			}
-			graphics->DrawImage(org_img, img_x, 0);
-			delete org_img;
+		
+		if (isFilter) {
+			graphics.DrawImage(origImg->get_imgBmp(), img_x, 0);
 		}
-
+		else {
+			graphics.DrawImage(origImg->get_imgBmp(), img_x, 0);
+		}
+		
 		EndPaint(hDlg, &ps);
 		return TRUE;
 	}

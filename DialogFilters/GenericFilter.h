@@ -6,12 +6,16 @@
 
 class GenericFilter {
 protected:
-	myImage* Img;
+	myImage* m_Img;
 public:
-	GenericFilter() {};//
+	GenericFilter()
+		: m_Img(nullptr) //
+	{}
+	~GenericFilter() {
+		//m_Img = nullptr;//
+	}
 
-
-	virtual Bitmap* Filter(HWND hDlg) = 0;
+	virtual Pix* Filter() = 0;
 };
 
 #endif //_GENERIC_FILTER_H__

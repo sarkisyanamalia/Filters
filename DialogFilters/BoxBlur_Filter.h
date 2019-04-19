@@ -6,15 +6,15 @@
 
 class BoxBlur : public GenericFilter {
 public:
-	BoxBlur(myImage* _Img)
+	BoxBlur(myImage* Img)
 	{
-		Img = _Img;
+		m_Img = Img;
 	}
 	~BoxBlur() {
-		delete Img;
+		delete m_Img;
 	}
 
-	Bitmap* Filter(HWND hDlg) override;
+	Pix* Filter() override;
 };
 
 #endif //_BOX_BLUR_H__

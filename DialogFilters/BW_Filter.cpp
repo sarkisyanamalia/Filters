@@ -1,24 +1,21 @@
 #include "BW_Filter.h"
 
-Bitmap* BW::Filter(HWND hDlg) {
-	for (UINT col = 0; col < Img->Width; ++col) {
-		for (UINT row = 0; row < Img->Height; ++row)
-		{
-			unsigned int curColor = Img->pixels[row * Img->stride / 4 + col];
-			int b = curColor & 0xff;
-			int g = (curColor & 0xff00) >> 8;
-			int r = (curColor & 0xff0000) >> 16;
+Pix* BW::Filter() {
+	INT str4 = m_Img->get_stride() / 4;
+	Pix* arrResult = new Pix[m_Img->get_width() * m_Img->get_height()];
 
+	for (int i = 0; i < m_Img->get_width(); ++i) {
+		for (int j = 0; j < m_Img->get_height(); ++j) {
+
+			int b = m_Img->get_arrResult()[j * str4 + i].get_B();
+			int g = m_Img->get_arrResult()[j * str4 + i].get_G();
+			int r = m_Img->get_arrResult()[j * str4 + i].get_R();
 			int avg = (b + g + r) / 3;
 
-			Img->arr_result[row * Img->stride / 4 + col].set_RGBA(avg);
+			arrResult[j * str4 + i].set_BGR(avg);
 		}
 	}
-
-	Bitmap* newBitmap = new Bitmap(Img->Width, Img->Height, Img->stride, PixelFormat32bppARGB,
-		(BYTE*)Img->arr_result);
-
-	return newBitmap;
+	return arrResult;
 }
 
 

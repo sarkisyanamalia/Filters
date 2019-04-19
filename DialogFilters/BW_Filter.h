@@ -7,15 +7,15 @@
 class BW : public GenericFilter {
 public:
 	BW() {}
-	BW(myImage* _Img)
+	BW(myImage* Img)
 	{
-		Img = _Img;
+		m_Img = Img;
 	}
 	~BW() {
-		delete Img;
+		delete m_Img;
 	}
 
-	Bitmap* Filter(HWND hDlg) override;
+	Pix* Filter() override;
 };
 
 #endif //_BLACK_WHITE_H__
