@@ -16,6 +16,7 @@ myImage* resImg = new myImage();
 Bitmap* newBmp = nullptr; 
 int scrPos = 0;
 bool isFilter = false;
+RECT rectPCtrl;
 
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR pCmdLine, int nCmdShow) {
 	GdiplusStartupInput gdiplusStartupInput;
@@ -31,6 +32,8 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR pCmdLine,
 	EnableWindow(GetDlgItem(hDlg, BLUR_RADIO), FALSE);
 	EnableWindow(GetDlgItem(hDlg, ID_SLIDER), FALSE);
 	EnableWindow(GetDlgItem(hDlg, RUN_BUTTON), FALSE);
+
+	GetWindowRect(GetDlgItem(hDlg, PICTURE_CONTROL), &rectPCtrl);
 
 	MSG msg;
 	while (GetMessage(&msg, NULL, 0, 0)) {
@@ -59,7 +62,6 @@ LRESULT CALLBACK DialogProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam) 
 			EnableWindow(GetDlgItem(hDlg, RUN_BUTTON), TRUE);
 
 			BW bw(origImg);
-			//bw.Filter(newBmp);
 			memcpy(resImg->get_arrResult(), bw.Filter(), resImg->get_height() * resImg->get_stride());
 			newBmp = new Bitmap(resImg->get_width(), resImg->get_height(), resImg->get_stride(),
 				PixelFormat32bppARGB, (BYTE*)resImg->get_arrResult());
@@ -113,16 +115,15 @@ LRESULT CALLBACK DialogProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam) 
 	}
 	case WM_LBUTTONDOWN:
 	{
-		RECT rect;
-		GetWindowRect(GetDlgItem(hDlg, PICTURE_CONTROL), &rect);
-
 		int xPos = GET_X_LPARAM(lParam);
 		int yPos = GET_Y_LPARAM(lParam);
 
-		const int magic_num = 165;
-		if (xPos >= rect.left && xPos <= rect.right && yPos >= rect.top - magic_num && yPos <= rect.bottom) { //
+		int magic_num = 165;
+		if (xPos >= rectPCtrl.left && xPos <= rectPCtrl.right &&
+			yPos >= rectPCtrl.top - magic_num && yPos <= rectPCtrl.bottom) { 
+
 			isFilter = false;
-			InvalidateRect(hDlg, NULL, TRUE);
+			InvalidateRect(hDlg, &rectPCtrl, TRUE);
 		}
 		return TRUE;
 	}
@@ -142,14 +143,14 @@ LRESULT CALLBACK DialogProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam) 
 		
 		if (isFilter) {
 			Rect posRect(0, 0, resImg->get_width(), resImg->get_height());
-			resImg->PositionImg(hDlg, posRect);
+			resImg->PositionImg(hDlg, posRect, rectPCtrl); 
 
 			graphics.DrawImage(newBmp, posRect);
 			EnableWindow(GetDlgItem(hDlg, ID_SLIDER), TRUE);
 		}
 		else {
 			Rect posRect(0, 0, origImg->get_width(), origImg->get_height());
-			origImg->PositionImg(hDlg, posRect);
+			origImg->PositionImg(hDlg, posRect, rectPCtrl); 
 
 			graphics.DrawImage(origImg->get_imgBmp(), posRect);
 		}

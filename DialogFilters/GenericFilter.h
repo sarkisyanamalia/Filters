@@ -12,7 +12,6 @@ public:
 	~GenericFilter();
 
 	virtual Pix* Filter() = 0;
-	//void SetNewBmp();
 };
 
 #endif //_GENERIC_FILTER_H__

@@ -18,7 +18,7 @@ Pix* BW::Filter() {
 				(int)m_Img->get_arrResult()[i * str4 + j].get_G() +
 				(int)m_Img->get_arrResult()[i * str4 + j].get_R()) / 3;
 
-			arrResult[i * str4 + j].set_BGR(avg);
+			arrResult[i * str4 + j].set_RGB(avg);
 		}
 	}
 

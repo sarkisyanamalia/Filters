@@ -36,7 +36,7 @@ void BoxBlur::vertical(INT str4, Pix* arrResult) {
 				sum_g += (int)m_Img->get_arrResult()[next_index * str4 + i].get_G();
 				sum_r += (int)m_Img->get_arrResult()[next_index * str4 + i].get_R();
 
-				arrResult[j * str4 + i].set_BGRA(sum_b / m_kerSize, sum_g / m_kerSize, sum_r / m_kerSize);
+				arrResult[j * str4 + i].set_RGB(sum_b / m_kerSize, sum_g / m_kerSize, sum_r / m_kerSize);
 			}
 		}
 	}
@@ -53,7 +53,6 @@ void BoxBlur::horizontal(INT str4, Pix* arrResult) {
 			sum_g += (int)m_Img->get_arrResult()[j * str4 + k].get_G();
 			sum_r += (int)m_Img->get_arrResult()[j * str4 + k].get_R();
 		}
-
 		for (int i = 0; i < m_Img->get_width(); ++i){
 
 			int prev_index = i - m_kerSize / 2;
@@ -68,7 +67,7 @@ void BoxBlur::horizontal(INT str4, Pix* arrResult) {
 				sum_g += (int)m_Img->get_arrResult()[j * str4 + next_index].get_G();
 				sum_r += (int)m_Img->get_arrResult()[j * str4 + next_index].get_R();
 			}
-			arrResult[j * str4 + i].set_BGRA(sum_b / m_kerSize, sum_g / m_kerSize, sum_r / m_kerSize);
+			arrResult[j * str4 + i].set_RGB(sum_b / m_kerSize, sum_g / m_kerSize, sum_r / m_kerSize);
 		}
 	}
 }

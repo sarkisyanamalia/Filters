@@ -12,18 +12,16 @@
 
 class Pix {
 private:
-	const static int m_arrSize = 4;
-	unsigned char m_arrChannels[m_arrSize];
+	unsigned char R, G, B, A;
 public:
-	unsigned char get_B() const;
-	unsigned char get_G() const;
 	unsigned char get_R() const;
+	unsigned char get_G() const;
+	unsigned char get_B() const;
 	unsigned char get_A() const;
 
-	void set_BGR(unsigned char);
-	void set_BGR(unsigned char, unsigned char, unsigned char);
-	void set_BGRA(unsigned char, unsigned char, unsigned char, unsigned char);
-	void set_BGRA(unsigned char, unsigned char, unsigned char);
+	void set_RGB(unsigned char);
+	void set_RGB(unsigned char, unsigned char, unsigned char);
+	void set_RGBA(unsigned char, unsigned char, unsigned char, unsigned char);
 };
 
 
@@ -34,8 +32,8 @@ private:
 	int m_imgSize; 
 	INT m_stride;
  
-	Bitmap* m_imgBmp;
 	Pix* m_arrResult;
+	Bitmap* m_imgBmp;
 public:
 	myImage();
 	~myImage();
@@ -49,7 +47,7 @@ public:
 
 	void SetImage();
 	void CopyImage(myImage*);
-	void PositionImg(HWND, Rect&);
+	void PositionImg(HWND, Rect&, RECT);
 };
 
 #endif //_IMAGE_H__
