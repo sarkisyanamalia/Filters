@@ -1,20 +1,27 @@
 #include "BW_Filter.h"
 
-Pix* BW::Filter() {
+BW::BW(myImage* Img) {
+	m_Img = Img;
+}
+
+BW::~BW() 
+{}
+
+Pix* BW::Filter() { 
 	INT str4 = m_Img->get_stride() / 4;
-	Pix* arrResult = new Pix[m_Img->get_width() * m_Img->get_height()];
+	Pix* arrResult = new Pix[m_Img->get_imgSize()]; 
 
-	for (int i = 0; i < m_Img->get_width(); ++i) {
-		for (int j = 0; j < m_Img->get_height(); ++j) {
+	for (int i = 0; i < m_Img->get_height(); ++i) {
+		for (int j = 0; j < m_Img->get_width(); ++j) {
 
-			int b = m_Img->get_arrResult()[j * str4 + i].get_B();
-			int g = m_Img->get_arrResult()[j * str4 + i].get_G();
-			int r = m_Img->get_arrResult()[j * str4 + i].get_R();
-			int avg = (b + g + r) / 3;
+			int avg = ((int)m_Img->get_arrResult()[i * str4 + j].get_B() +
+				(int)m_Img->get_arrResult()[i * str4 + j].get_G() +
+				(int)m_Img->get_arrResult()[i * str4 + j].get_R()) / 3;
 
-			arrResult[j * str4 + i].set_BGR(avg);
+			arrResult[i * str4 + j].set_BGR(avg);
 		}
 	}
+
 	return arrResult;
 }
 

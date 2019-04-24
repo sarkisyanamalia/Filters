@@ -6,14 +6,8 @@
 
 class BW : public GenericFilter {
 public:
-	BW() {}
-	BW(myImage* Img)
-	{
-		m_Img = Img;
-	}
-	~BW() {
-		delete m_Img;
-	}
+	BW(myImage*);
+	~BW();
 
 	Pix* Filter() override;
 };

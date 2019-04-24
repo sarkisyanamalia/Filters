@@ -1,4 +1,5 @@
 #include <Windows.h>
+#include <Windowsx.h>
 #include <gdiplus.h>
 #include <commctrl.h>
 #include "Image.h"
@@ -11,8 +12,9 @@ using namespace Gdiplus;
 LRESULT CALLBACK DialogProc(HWND, UINT, WPARAM, LPARAM);
 
 myImage* origImg = new myImage();
-myImage* resImg = new myImage();
+myImage* resImg = new myImage(); 
 Bitmap* newBmp = nullptr; 
+int scrPos = 0;
 bool isFilter = false;
 
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR pCmdLine, int nCmdShow) {
@@ -40,7 +42,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR pCmdLine,
 	GdiplusShutdown(gdiplusToken);
 	delete origImg;
 	delete resImg;
-	delete newBmp;
+	delete newBmp; //
 
 	return 0;
 }
@@ -57,26 +59,32 @@ LRESULT CALLBACK DialogProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam) 
 			EnableWindow(GetDlgItem(hDlg, RUN_BUTTON), TRUE);
 
 			BW bw(origImg);
-			resImg->CopyImage(origImg);
-			memcpy(resImg->get_arrResult(), bw.Filter(), origImg->get_imgSize());
+			//bw.Filter(newBmp);
+			memcpy(resImg->get_arrResult(), bw.Filter(), resImg->get_height() * resImg->get_stride());
 			newBmp = new Bitmap(resImg->get_width(), resImg->get_height(), resImg->get_stride(),
 				PixelFormat32bppARGB, (BYTE*)resImg->get_arrResult());
 
 			isFilter = true;
+			
 			return TRUE;
 		}
 		case BLUR_RADIO:
 		{
+			EnableWindow(GetDlgItem(hDlg, ID_SLIDER), TRUE);
 			EnableWindow(GetDlgItem(hDlg, RUN_BUTTON), TRUE);
 
-			BoxBlur boxBlur(origImg);
-			resImg->CopyImage(origImg);
-			memcpy(resImg->get_arrResult(), boxBlur.Filter(), origImg->get_imgSize());
-			newBmp = new Bitmap(resImg->get_width(), resImg->get_height(), resImg->get_stride(),
-				PixelFormat32bppARGB, (BYTE*)resImg->get_arrResult());
+			if (scrPos != 0) {
+				BoxBlur boxBlur(origImg, scrPos);
+				memcpy(resImg->get_arrResult(), boxBlur.Filter(), resImg->get_height() * resImg->get_stride());
+				newBmp = new Bitmap(resImg->get_width(), resImg->get_height(), resImg->get_stride(),
+					PixelFormat32bppARGB, (BYTE*)resImg->get_arrResult());
 
-
-			isFilter = true;
+				isFilter = true;
+			}
+			else {
+				MessageBox(hDlg, "Choose kernel size!", "Error", MB_OK);
+			}
+			
 			return TRUE;
 		}
 		case RUN_BUTTON:
@@ -88,6 +96,7 @@ LRESULT CALLBACK DialogProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam) 
 		{
 			origImg->ButtonClick(hDlg);
 			origImg->SetImage();
+			resImg->CopyImage(origImg);
 
 			EnableWindow(GetDlgItem(hDlg, BW_RADIO), TRUE);
 			EnableWindow(GetDlgItem(hDlg, BLUR_RADIO), TRUE);
@@ -99,8 +108,28 @@ LRESULT CALLBACK DialogProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam) 
 		}
 	case WM_HSCROLL:
 	{
-		int scrPos = SendMessage(GetDlgItem(hDlg, ID_SLIDER), TBM_GETPOS, 0, 0);
-		origImg->set_kerSize(scrPos);
+		scrPos = SendMessage(GetDlgItem(hDlg, ID_SLIDER), TBM_GETPOS, 0, 0);
+		return TRUE;
+	}
+	case WM_LBUTTONDOWN:
+	{
+		RECT rect;
+		GetWindowRect(GetDlgItem(hDlg, PICTURE_CONTROL), &rect);
+
+		int xPos = GET_X_LPARAM(lParam);
+		int yPos = GET_Y_LPARAM(lParam);
+
+		const int magic_num = 165;
+		if (xPos >= rect.left && xPos <= rect.right && yPos >= rect.top - magic_num && yPos <= rect.bottom) { //
+			isFilter = false;
+			InvalidateRect(hDlg, NULL, TRUE);
+		}
+		return TRUE;
+	}
+	case WM_LBUTTONUP:
+	{
+		isFilter = true;
+		InvalidateRect(hDlg, NULL, TRUE);
 		return TRUE;
 	}
 	case WM_PAINT:
@@ -110,24 +139,23 @@ LRESULT CALLBACK DialogProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam) 
 
 		HDC PChdc = GetDC(GetDlgItem(hDlg, PICTURE_CONTROL));
 		Graphics graphics(PChdc); 
-
-		//position img in the center
-		RECT rect;
-		GetWindowRect(GetDlgItem(hDlg, PICTURE_CONTROL), &rect);
-		int img_x = 0;
-		if (rect.right - rect.left > origImg->get_width()) {
-			img_x = (rect.right - rect.left - origImg->get_width()) / 2;
-		}
 		
 		if (isFilter) {
-			graphics.DrawImage(origImg->get_imgBmp(), img_x, 0);
+			Rect posRect(0, 0, resImg->get_width(), resImg->get_height());
+			resImg->PositionImg(hDlg, posRect);
+
+			graphics.DrawImage(newBmp, posRect);
+			EnableWindow(GetDlgItem(hDlg, ID_SLIDER), TRUE);
 		}
 		else {
-			graphics.DrawImage(origImg->get_imgBmp(), img_x, 0);
+			Rect posRect(0, 0, origImg->get_width(), origImg->get_height());
+			origImg->PositionImg(hDlg, posRect);
+
+			graphics.DrawImage(origImg->get_imgBmp(), posRect);
 		}
 		
 		EndPaint(hDlg, &ps);
-		return TRUE;
+		return TRUE; 
 	}
 
 	case WM_CLOSE:

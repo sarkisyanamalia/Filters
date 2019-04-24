@@ -1,37 +1,37 @@
 #include "Image.h"
 
 //Pix
-char Pix::get_B() const {
-	return m_arrChannels[1]; 
+unsigned char Pix::get_R() const {
+	return m_arrChannels[0]; 
 }
-char Pix::get_G() const {
-	return m_arrChannels[2];
+unsigned char Pix::get_G() const {
+	return m_arrChannels[1];
 }
-char Pix::get_R() const {
-	return m_arrChannels[3]; 
+unsigned char Pix::get_B() const {
+	return m_arrChannels[2]; 
 }
-char Pix::get_A() const {
-	return m_arrChannels[0];
+unsigned char Pix::get_A() const {
+	return m_arrChannels[3];
 }
 
-void Pix::set_BGR(char value) {
-	m_arrChannels[1] = m_arrChannels[2] = m_arrChannels[3] = value;
+void Pix::set_BGR(unsigned char val) { 
+	m_arrChannels[0] = m_arrChannels[1] = m_arrChannels[2] = val;
 }
-void Pix::set_BGR(char value1, char value2, char value3) {
-	//m_arrChannels[1] = value1;
-	//m_arrChannels[2] = value2;
-	//m_arrChannels[3] = value3;
+void Pix::set_BGR(unsigned char val1, unsigned char val2, unsigned char val3) {
+	m_arrChannels[0] = val1;
+	m_arrChannels[1] = val2;
+	m_arrChannels[2] = val3;
 }
-void Pix::set_BGRA(char value1, char value2, char value3, char value4) {
-	m_arrChannels[0] = value1;
-	m_arrChannels[1] = value2;
-	m_arrChannels[2] = value3;
-	m_arrChannels[3] = value4;
+void Pix::set_BGRA(unsigned char val1, unsigned char val2, unsigned char val3, unsigned char val4) { 
+	m_arrChannels[0] = val1;
+	m_arrChannels[1] = val2;
+	m_arrChannels[2] = val3;
+	m_arrChannels[3] = val4;
 }
-void Pix::set_BGRA(char value2, char value3, char value4) {
-	m_arrChannels[1] = value2;
-	m_arrChannels[2] = value3;
-	m_arrChannels[3] = value4;
+void Pix::set_BGRA(unsigned char val1, unsigned char val2, unsigned char val3) {
+	m_arrChannels[0] = val1;
+	m_arrChannels[1] = val2;
+	m_arrChannels[2] = val3;
 }
 
 //myImage
@@ -46,15 +46,9 @@ myImage::myImage()
 }
 myImage::~myImage() {
 	delete m_arrResult; 
-	delete m_imgBmp;
+	delete m_imgBmp; // 
 }
 
-void myImage::set_kerSize(int value) {
-	m_kerSize = value;
-}
-int myImage::get_kerSize() const {
-	return m_kerSize;
-}
 int myImage::get_width() const {
 	return m_width;
 }
@@ -87,17 +81,17 @@ void myImage::SetImage() {
 	UINT* pixels = (UINT*)bmpData.Scan0;
 	m_stride = abs(bmpData.Stride);
 
-	m_arrResult = new Pix[m_imgSize];
+	m_arrResult = new Pix[m_height * m_width];
 	for (UINT i = 0; i < m_width; ++i) {
-		for (UINT j = 0; j < m_height; ++j)
-		{
-			unsigned int curColor = pixels[j * m_stride / 4 + i]; 
-			int b = curColor & 0xff;
-			int g = (curColor & 0xff00) >> 8;
-			int r = (curColor & 0xff0000) >> 16;
-			int a = (curColor & 0xff000000) >> 24;
+		for (UINT j = 0; j < m_height; ++j) {
 
-			m_arrResult[j * m_stride / 4 + i].set_BGRA(a, b, g, r);
+			unsigned int curColor = pixels[j * m_stride / 4 + i];
+			unsigned char b = curColor & 0xff;
+			unsigned char g = (curColor & 0xff00) >> 8;
+			unsigned char r = (curColor & 0xff0000) >> 16;
+			unsigned char a = (curColor & 0xff000000) >> 24;
+
+			m_arrResult[j * m_stride / 4 + i].set_BGRA(r, g, b, a);
 		}
 	}
 
@@ -110,5 +104,21 @@ void myImage::CopyImage(myImage* Img) {
 	m_imgSize = Img->get_imgSize();
 	m_stride = Img->get_stride();
 
-	m_arrResult = new Pix[Img->get_height() * Img->get_width()];
+	m_imgBmp = nullptr;
+	m_arrResult = new Pix[Img->get_imgSize()]; 
+}
+
+void myImage::PositionImg(HWND hDlg, Rect& posRect) {
+	RECT rect;
+	GetWindowRect(GetDlgItem(hDlg, PICTURE_CONTROL), &rect);
+
+	if (rect.right - rect.left > m_width) {
+		posRect.X = (rect.right - rect.left - m_width) / 2;
+	}
+	if (rect.bottom - rect.top < m_height) {
+		posRect.Height = rect.bottom - rect.top;
+	}
+	if (rect.right - rect.left < m_width) {
+		posRect.Width = rect.right - rect.left;
+	}
 }

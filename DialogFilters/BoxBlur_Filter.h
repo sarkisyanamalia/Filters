@@ -5,15 +5,14 @@
 #include "Image.h"
 
 class BoxBlur : public GenericFilter {
+private:
+	int m_kerSize;
 public:
-	BoxBlur(myImage* Img)
-	{
-		m_Img = Img;
-	}
-	~BoxBlur() {
-		delete m_Img;
-	}
+	BoxBlur(myImage*, int);
+	~BoxBlur();
 
+	void vertical(INT, Pix*);
+	void horizontal(INT, Pix*);
 	Pix* Filter() override;
 };
 

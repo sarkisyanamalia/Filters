@@ -10,7 +10,6 @@ using namespace Gdiplus;
 
 class GenericImage {
 protected: 
-	int m_kerSize;
 	std::string str_file_name;
 	std::wstring wstr_file_name;
 public:
@@ -21,7 +20,7 @@ public:
 	std::string get_str() const;
 
 	//Open a Dialog when clicking on a push button 
-	void ButtonClick(HWND hDlg);
+	void ButtonClick(HWND);
 };
 
 #endif //_GENERIC_IMAGE_H__

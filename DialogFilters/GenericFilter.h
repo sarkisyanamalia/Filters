@@ -8,14 +8,11 @@ class GenericFilter {
 protected:
 	myImage* m_Img;
 public:
-	GenericFilter()
-		: m_Img(nullptr) //
-	{}
-	~GenericFilter() {
-		//m_Img = nullptr;//
-	}
+	GenericFilter();
+	~GenericFilter();
 
 	virtual Pix* Filter() = 0;
+	//void SetNewBmp();
 };
 
 #endif //_GENERIC_FILTER_H__

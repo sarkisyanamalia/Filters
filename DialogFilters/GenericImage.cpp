@@ -1,7 +1,6 @@
 #include "GenericImage.h"
 
 GenericImage::GenericImage()
-	: m_kerSize(0)
 {}
 
 GenericImage::~GenericImage() {
