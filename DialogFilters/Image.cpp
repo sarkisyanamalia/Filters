@@ -1,32 +1,40 @@
 #include "Image.h"
 
 //Pix
-unsigned char Pix::get_R() const {
-	return R; 
-}
-unsigned char Pix::get_G() const {
-	return G;
-}
-unsigned char Pix::get_B() const {
-	return B; 
-}
-unsigned char Pix::get_A() const {
-	return A;
+unsigned char Pix::get(char channel) const {
+	if (channel == 'B')
+		return B;
+	if (channel == 'G')
+		return G;
+	if (channel == 'R')
+		return R;
+	if (channel == 'A')
+		return A;
 }
 
-void Pix::set_RGB(unsigned char val) { 
-	R = G = B = val;
+void Pix::set_BGR(unsigned char val) { 
+	B = G = R = val;
 }
-void Pix::set_RGB(unsigned char val1, unsigned char val2, unsigned char val3) {
-	R = val1;
+void Pix::set_BGR(unsigned char val1, unsigned char val2, unsigned char val3) { 
+	B = val1;
 	G = val2;
-	B = val3;
+	R = val3;
 }
-void Pix::set_RGBA(unsigned char val1, unsigned char val2, unsigned char val3, unsigned char val4) { 
-	R = val1;
+void Pix::set_BGRA(unsigned char val1, unsigned char val2, unsigned char val3, unsigned char val4) { 
+	B = val1;
 	G = val2;
-	B = val3;
+	R = val3;
 	A = val4;
+}
+void Pix::setChannel(unsigned char val, char channel) {
+	if (channel == 'R') 
+		R = val;
+	else if (channel == 'G') 
+		G = val;
+	else if (channel == 'B') 
+		B = val;
+	else if (channel == 'A') 
+		A = val;
 }
 
 //myImage
@@ -41,7 +49,7 @@ myImage::myImage()
 }
 myImage::~myImage() {
 	delete m_arrResult; 
-	delete m_imgBmp; // 
+	delete m_imgBmp; 
 }
 
 int myImage::get_width() const {
@@ -86,7 +94,7 @@ void myImage::SetImage() {
 			unsigned char r = (curColor & 0xff0000) >> 16;
 			unsigned char a = (curColor & 0xff000000) >> 24;
 
-			m_arrResult[j * m_stride / 4 + i].set_RGBA(r, g, b, a);
+			m_arrResult[j * m_stride / 4 + i].set_BGRA(b, g, r, a);
 		}
 	}
 

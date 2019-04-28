@@ -45,7 +45,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR pCmdLine,
 	GdiplusShutdown(gdiplusToken);
 	delete origImg;
 	delete resImg;
-	delete newBmp; //
+	delete newBmp; 
 
 	return 0;
 }
@@ -61,8 +61,8 @@ LRESULT CALLBACK DialogProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam) 
 			EnableWindow(GetDlgItem(hDlg, ID_SLIDER), FALSE); 
 			EnableWindow(GetDlgItem(hDlg, RUN_BUTTON), TRUE);
 
-			BW bw(origImg);
-			memcpy(resImg->get_arrResult(), bw.Filter(), resImg->get_height() * resImg->get_stride());
+			BW bw(origImg, resImg);
+			bw.Filter();
 			newBmp = new Bitmap(resImg->get_width(), resImg->get_height(), resImg->get_stride(),
 				PixelFormat32bppARGB, (BYTE*)resImg->get_arrResult());
 
@@ -76,8 +76,8 @@ LRESULT CALLBACK DialogProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam) 
 			EnableWindow(GetDlgItem(hDlg, RUN_BUTTON), TRUE);
 
 			if (scrPos != 0) {
-				BoxBlur boxBlur(origImg, scrPos);
-				memcpy(resImg->get_arrResult(), boxBlur.Filter(), resImg->get_height() * resImg->get_stride());
+				BoxBlur boxBlur(origImg, resImg, scrPos);
+				boxBlur.Filter();
 				newBmp = new Bitmap(resImg->get_width(), resImg->get_height(), resImg->get_stride(),
 					PixelFormat32bppARGB, (BYTE*)resImg->get_arrResult());
 
@@ -91,7 +91,7 @@ LRESULT CALLBACK DialogProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam) 
 		}
 		case RUN_BUTTON:
 		{
-			InvalidateRect(hDlg, NULL, TRUE);
+			InvalidateRect(hDlg, NULL, TRUE); //
 			return TRUE;
 		}
 		case OPEN_BUTTON:
@@ -104,7 +104,7 @@ LRESULT CALLBACK DialogProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam) 
 			EnableWindow(GetDlgItem(hDlg, BLUR_RADIO), TRUE);
 			EnableWindow(GetDlgItem(hDlg, ID_SLIDER), TRUE);
 
-			InvalidateRect(hDlg, NULL, TRUE);
+			InvalidateRect(hDlg, &rectPCtrl, TRUE); 
 			return TRUE;
 		}
 		}
@@ -130,7 +130,7 @@ LRESULT CALLBACK DialogProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam) 
 	case WM_LBUTTONUP:
 	{
 		isFilter = true;
-		InvalidateRect(hDlg, NULL, TRUE);
+		InvalidateRect(hDlg, NULL, TRUE); //
 		return TRUE;
 	}
 	case WM_PAINT:

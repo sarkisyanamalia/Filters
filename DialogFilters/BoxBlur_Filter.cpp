@@ -2,86 +2,90 @@
 #include <thread> 
 #include <iostream>
 
-BoxBlur::BoxBlur(myImage* Img, int kerSize)
+BoxBlur::BoxBlur(myImage* origImg, myImage* resImg, int kerSize)
 	: m_kerSize(kerSize)
 {
-	m_Img = Img;
+	m_origImg = origImg;
+	m_resImg = resImg;
 }
 
 BoxBlur::~BoxBlur()
 {}
 
-void BoxBlur::vertical(INT str4, Pix* arrResult) {
-	for (int i = 0; i < m_Img->get_width(); ++i) {
-		int sum_b = 0,
-			sum_g = 0,
-			sum_r = 0;
+void BoxBlur::VertLineBlur(Pix* arrResult, char channel, int i, int lineSize) {
+	int w = m_origImg->get_width();
+	int sum = 0;
 
-		for (int k = 0; k < m_kerSize; ++k) {
-			sum_b += (int)m_Img->get_arrResult()[k * str4 + i].get_B();
-			sum_g += (int)m_Img->get_arrResult()[k * str4 + i].get_G();
-			sum_r += (int)m_Img->get_arrResult()[k * str4 + i].get_R();
+	for (int k = 0; k < m_kerSize; ++k) {
+		sum += (int)m_origImg->get_arrResult()[k * w + i].get(channel);
+	}
+	for (int j = 0; j < lineSize; ++j) {
+
+		int prev_index = j - m_kerSize / 2;
+		int next_index = j + (m_kerSize / 2) + 1;
+
+		if (prev_index >= 0 && next_index < lineSize) {
+			sum -= (int)m_origImg->get_arrResult()[prev_index * w + i].get(channel);
+			sum += (int)m_origImg->get_arrResult()[next_index * w + i].get(channel);
 		}
-		for (int j = 0; j < m_Img->get_height(); ++j) {
-
-			int prev_index = j - m_kerSize / 2;
-			int next_index = j + (m_kerSize / 2) + 1;
-
-			if (prev_index >= 0 && next_index < m_Img->get_height()) {
-				sum_b -= (int)m_Img->get_arrResult()[prev_index * str4 + i].get_B();
-				sum_g -= (int)m_Img->get_arrResult()[prev_index * str4 + i].get_G();
-				sum_r -= (int)m_Img->get_arrResult()[prev_index * str4 + i].get_R();
-
-				sum_b += (int)m_Img->get_arrResult()[next_index * str4 + i].get_B();
-				sum_g += (int)m_Img->get_arrResult()[next_index * str4 + i].get_G();
-				sum_r += (int)m_Img->get_arrResult()[next_index * str4 + i].get_R();
-
-				arrResult[j * str4 + i].set_RGB(sum_b / m_kerSize, sum_g / m_kerSize, sum_r / m_kerSize);
-			}
-		}
+		arrResult[j * w + i].setChannel(sum / m_kerSize, channel);
 	}
 }
 
-void BoxBlur::horizontal(INT str4, Pix* arrResult) {
-	for (int j = 0; j < m_Img->get_height(); ++j) {
-		int sum_b = 0,
-			sum_g = 0,
-			sum_r = 0;
+void BoxBlur::vertical(Pix* arrResult) {
+	int lineSize = m_origImg->get_height();
+	bool isVert = true;
+	for (int i = 0; i < m_origImg->get_width(); ++i) {
 
-		for (int k = 0; k < m_kerSize; ++k) {
-			sum_b += (int)m_Img->get_arrResult()[j * str4 + k].get_B();
-			sum_g += (int)m_Img->get_arrResult()[j * str4 + k].get_G();
-			sum_r += (int)m_Img->get_arrResult()[j * str4 + k].get_R();
-		}
-		for (int i = 0; i < m_Img->get_width(); ++i){
+		std::thread bTrd(&BoxBlur::VertLineBlur, this, arrResult, 'B', i, lineSize);
+		std::thread gTrd(&BoxBlur::VertLineBlur, this, arrResult, 'G', i, lineSize);
+		std::thread rTrd(&BoxBlur::VertLineBlur, this, arrResult, 'R', i, lineSize);
 
-			int prev_index = i - m_kerSize / 2;
-			int next_index = i + (m_kerSize / 2) + 1;
-
-			if (prev_index >= 0 && next_index < m_Img->get_width()) {
-				sum_b -= (int)m_Img->get_arrResult()[j * str4 + prev_index].get_B();
-				sum_g -= (int)m_Img->get_arrResult()[j * str4 + prev_index].get_G();
-				sum_r -= (int)m_Img->get_arrResult()[j * str4 + prev_index].get_R();
-
-				sum_b += (int)m_Img->get_arrResult()[j * str4 + next_index].get_B();
-				sum_g += (int)m_Img->get_arrResult()[j * str4 + next_index].get_G();
-				sum_r += (int)m_Img->get_arrResult()[j * str4 + next_index].get_R();
-			}
-			arrResult[j * str4 + i].set_RGB(sum_b / m_kerSize, sum_g / m_kerSize, sum_r / m_kerSize);
-		}
+		bTrd.join();
+		gTrd.join();
+		rTrd.join();
 	}
 }
 
-Pix* BoxBlur::Filter() {
-	INT str4 = m_Img->get_stride() / 4;
-	Pix* arrResult = new Pix[m_Img->get_imgSize()];
+void BoxBlur::HorizLineBlur(Pix* arrResult, char channel, int i, int lineSize) {
+	int w = m_origImg->get_width();
+	int sum = 0;
+
+	for (int k = 0; k < m_kerSize; ++k) {
+		sum += (int)m_origImg->get_arrResult()[i * w + k].get(channel);
+	}
+	for (int j = 0; j < lineSize; ++j) {
+
+		int prev_index = j - m_kerSize / 2;
+		int next_index = j + (m_kerSize / 2) + 1;
+
+		if (prev_index >= 0 && next_index < lineSize) {
+			sum -= (int)m_origImg->get_arrResult()[i * w + prev_index].get(channel);
+			sum += (int)m_origImg->get_arrResult()[i * w + next_index].get(channel);
+		}
+		arrResult[i * w + j].setChannel(sum / m_kerSize, channel);
+	}
+}
+
+void BoxBlur::horizontal(Pix* arrResult) {
+	int lineSize = m_origImg->get_width();
+	bool isVert = false;
+	for (int i = 0; i < m_origImg->get_height(); ++i) {
+
+		std::thread bTrd(&BoxBlur::HorizLineBlur, this, arrResult, 'B', i, lineSize);
+		std::thread gTrd(&BoxBlur::HorizLineBlur, this, arrResult, 'G', i, lineSize);
+		std::thread rTrd(&BoxBlur::HorizLineBlur, this, arrResult, 'R', i, lineSize);
+
+		bTrd.join();
+		gTrd.join();
+		rTrd.join();
+	}
+}
+
+void BoxBlur::Filter() {
+	Pix* arrResult = new Pix[m_origImg->get_imgSize()];
 	
-	vertical(str4, arrResult);
-	horizontal(str4, arrResult);
-	//std::thread thrdVert(&BoxBlur::vertical, this, str4, arrResult); 
-	//std::thread thrdHoriz(&BoxBlur::horizontal, this, str4, arrResult);
-
-	//thrdVert.join();
-	//thrdHoriz.join();
-	return arrResult;
+	vertical(arrResult);
+	horizontal(arrResult);
+	memcpy(m_resImg->get_arrResult(), arrResult, m_resImg->get_height() * m_resImg->get_stride());
 }

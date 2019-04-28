@@ -134,6 +134,7 @@
     <ClInclude Include="GenericFilter.h" />
     <ClInclude Include="GenericImage.h" />
     <ClInclude Include="Image.h" />
+    <ClInclude Include="PixTypes.h" />
     <ClInclude Include="resource.h" />
   </ItemGroup>
   <ItemGroup>

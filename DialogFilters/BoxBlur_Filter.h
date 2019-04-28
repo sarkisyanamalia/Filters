@@ -8,12 +8,14 @@ class BoxBlur : public GenericFilter {
 private:
 	int m_kerSize;
 public:
-	BoxBlur(myImage*, int);
+	BoxBlur(myImage*, myImage*, int);
 	~BoxBlur();
 
-	void vertical(INT, Pix*);
-	void horizontal(INT, Pix*);
-	Pix* Filter() override;
+	void VertLineBlur(Pix* arrResult, char channel, int i, int lineSize);
+	void HorizLineBlur(Pix* arrResult, char channel, int i, int lineSize);
+	void vertical(Pix*);
+	void horizontal(Pix*);
+	void Filter() override;
 };
 
 #endif //_BOX_BLUR_H__

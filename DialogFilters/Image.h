@@ -12,16 +12,14 @@
 
 class Pix {
 private:
-	unsigned char R, G, B, A;
+	unsigned char B, G, R, A;
 public:
-	unsigned char get_R() const;
-	unsigned char get_G() const;
-	unsigned char get_B() const;
-	unsigned char get_A() const;
+	unsigned char get(char channel) const;
 
-	void set_RGB(unsigned char);
-	void set_RGB(unsigned char, unsigned char, unsigned char);
-	void set_RGBA(unsigned char, unsigned char, unsigned char, unsigned char);
+	void set_BGR(unsigned char);
+	void set_BGR(unsigned char, unsigned char, unsigned char);
+	void set_BGRA(unsigned char, unsigned char, unsigned char, unsigned char);
+	void setChannel(unsigned char, char);
 };
 
 

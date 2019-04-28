@@ -1,7 +1,8 @@
 #include "GenericFilter.h"
 
 GenericFilter::GenericFilter()
-	: m_Img(nullptr) 
+	: m_origImg(nullptr)
+	, m_resImg(nullptr)
 {}
 
 GenericFilter::~GenericFilter() 

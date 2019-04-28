@@ -6,10 +6,10 @@
 
 class BW : public GenericFilter {
 public:
-	BW(myImage*);
+	BW(myImage*, myImage*);
 	~BW();
 
-	Pix* Filter() override;
+	void Filter() override;
 };
 
 #endif //_BLACK_WHITE_H__

@@ -6,12 +6,13 @@
 
 class GenericFilter {
 protected:
-	myImage* m_Img;
+	myImage* m_origImg;
+	myImage* m_resImg;
 public:
 	GenericFilter();
 	~GenericFilter();
 
-	virtual Pix* Filter() = 0;
+	virtual void Filter() = 0;
 };
 
 #endif //_GENERIC_FILTER_H__

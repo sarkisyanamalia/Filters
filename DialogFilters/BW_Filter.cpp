@@ -1,28 +1,28 @@
 #include "BW_Filter.h"
 
-BW::BW(myImage* Img) {
-	m_Img = Img;
+BW::BW(myImage* origImg, myImage* resImg) {
+	m_origImg = origImg;
+	m_resImg = resImg;
 }
 
 BW::~BW() 
 {}
 
-Pix* BW::Filter() { 
-	INT str4 = m_Img->get_stride() / 4;
-	Pix* arrResult = new Pix[m_Img->get_imgSize()]; 
+void BW::Filter() {
+	int w = m_origImg->get_width();
+	Pix* arrResult = new Pix[m_origImg->get_imgSize()]; 
 
-	for (int i = 0; i < m_Img->get_height(); ++i) {
-		for (int j = 0; j < m_Img->get_width(); ++j) {
+	for (int i = 0; i < m_origImg->get_height(); ++i) {
+		for (int j = 0; j < m_origImg->get_width(); ++j) {
 
-			int avg = ((int)m_Img->get_arrResult()[i * str4 + j].get_B() +
-				(int)m_Img->get_arrResult()[i * str4 + j].get_G() +
-				(int)m_Img->get_arrResult()[i * str4 + j].get_R()) / 3;
+			int avg = ((int)m_origImg->get_arrResult()[i * w + j].get('B') +
+				(int)m_origImg->get_arrResult()[i * w + j].get('G') +
+				(int)m_origImg->get_arrResult()[i * w + j].get('R')) / 3;
 
-			arrResult[i * str4 + j].set_RGB(avg);
+			arrResult[i * w + j].set_BGR(avg);
 		}
 	}
-
-	return arrResult;
+	memcpy(m_resImg->get_arrResult(), arrResult, m_resImg->get_height() * m_resImg->get_stride());
 }
 
 
